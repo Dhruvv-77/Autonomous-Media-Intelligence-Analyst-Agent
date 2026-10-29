@@ -20,9 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies (use CPU-only PyTorch to shrink image from 4GB to 400MB and speed up Render boot)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -U pip && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code, configuration, and benchmark datasets
