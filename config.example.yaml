@@ -1,0 +1,85 @@
+app:
+  name: "Autonomous Media Intelligence Analyst Agent"
+  timezone: "UTC"
+  output_dir: "outputs"
+  database_url: "sqlite:///outputs/agent.db"
+
+run:
+  # The assessment describes a 1,500-article full run.
+  max_articles: 1500
+  lookback_hours: 24
+  max_runtime_seconds: 900
+  resume_interrupted_runs: true
+  input_corpus_path: "data/news_corpus_1500.jsonl"
+
+budget:
+  max_llm_eur: 4.00
+  reserve_fraction: 0.15
+  currency: "EUR"
+  # Provider prices must be verified before any paid provider/model is explicitly enabled.
+  price_table_version: "unconfigured"
+  paid_provider_enabled: false
+
+news:
+  discovery_provider: "corpus"
+  languages: ["nl", "de", "fr", "en"]
+  max_results_per_query: 250
+  request_timeout_seconds: 20
+  max_retries: 3
+  per_host_concurrency: 3
+  # Optional RSS feeds can be added here.
+  rss_feeds: []
+  respect_robots_and_source_terms: true
+  allow_paywall_bypass: false
+
+llm:
+  provider: "gemini"
+  # Keep configurable and confirm this model is currently available on the free tier.
+  model: "gemini-3.8-flash"
+  temperature: 0
+  timeout_seconds: 90
+  max_retries: 2
+  free_tier_only: true
+  paid_fallback_enabled: false
+  # Read GEMINI_API_KEY from environment or .env; never put API keys in this file.
+
+embeddings:
+  model: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+  clustering_threshold: 0.82
+  deterministic_seed: 42
+
+client_profile:
+  # Replace all placeholders with company-approved data before running.
+  client_name: "REPLACE_WITH_CLIENT_NAME"
+  brands: []
+  subsidiaries: []
+  competitors: []
+  executives:
+    # Store only people approved to be named in outputs; use role titles only as requested.
+    - name: "REPLACE_WITH_APPROVED_EXECUTIVE_NAME"
+      role: "REPLACE_WITH_ROLE"
+  topics_include: []
+  topics_exclude: []
+  search_terms: []
+  output_languages: ["nl", "de"]
+
+privacy:
+  only_profile_people_may_be_named: true
+  pseudonymize_other_people: true
+  infer_gdpr_article_9_categories: false
+  redact_secrets_from_logs: true
+
+crm:
+  mode: "mock"
+  enabled: false
+  max_tasks_per_run: 5
+  minimum_severity: "high"
+  idempotency_enabled: true
+  # Official OpenAPI schema and endpoint are unavailable; do not configure a real endpoint yet.
+
+observability:
+  trace_jsonl: true
+  log_llm_inputs: false
+  redact_sensitive_fields: true
+  record_token_usage: true
+  record_cost_estimates: true

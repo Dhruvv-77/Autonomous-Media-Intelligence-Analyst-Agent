@@ -1,0 +1,33 @@
+# Core application
+pydantic>=2.7,<3.0
+pydantic-settings>=2.2,<3.0
+httpx>=0.27,<1.0
+tenacity>=8.2,<10.0
+PyYAML>=6.0,<7.0
+python-dotenv>=1.0,<2.0
+feedparser>=6.0,<7.0
+trafilatura>=1.9,<3.0
+beautifulsoup4>=4.12,<5.0
+lxml>=5.2,<7.0
+googlenewsdecoder>=0.2.0
+fastapi>=0.110.0
+uvicorn>=0.29.0
+
+# Persistence and data
+SQLAlchemy>=2.0,<3.0
+aiosqlite>=0.20,<1.0
+orjson>=3.10,<4.0
+
+# Embeddings / clustering
+sentence-transformers>=3.0,<6.0
+scikit-learn>=1.5,<2.0
+numpy>=1.26,<3.0
+
+# Gemini API client and dashboard
+google-genai>=1.0,<2.0
+streamlit>=1.36,<2.0
+
+# Testing and quality
+pytest>=8.0,<9.0
+pytest-asyncio>=0.23,<2.0
+ruff>=0.5,<1.0

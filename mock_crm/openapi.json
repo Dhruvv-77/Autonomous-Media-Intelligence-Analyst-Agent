@@ -1,0 +1,107 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Mock Corporate CRM API",
+    "description": "Mock CRM API for Autonomous Media Intelligence Analyst Agent assessment. Exposes client account data and idempotent create_task endpoint.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/client-account": {
+      "get": {
+        "summary": "Retrieve client account data",
+        "description": "Returns account profile, tier, status, and account executives.",
+        "responses": {
+          "200": {
+            "description": "Client account details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientAccount"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "post": {
+        "summary": "Create an action task",
+        "description": "Creates an urgent CRM task based on verified reputational risk. Enforces idempotency via idempotency_key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Task already exists (idempotency preserved)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid task payload"
+          },
+          "503": {
+            "description": "Simulated transient failure"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClientAccount": {
+        "type": "object",
+        "properties": {
+          "client_id": { "type": "string" },
+          "company_name": { "type": "string" },
+          "tier": { "type": "string" },
+          "status": { "type": "string" }
+        }
+      },
+      "CreateTaskRequest": {
+        "type": "object",
+        "required": ["idempotency_key", "client_name", "title", "description", "severity"],
+        "properties": {
+          "task_id": { "type": "string" },
+          "idempotency_key": { "type": "string" },
+          "client_name": { "type": "string" },
+          "cluster_id": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+        }
+      },
+      "TaskResponse": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "string" },
+          "idempotency_key": { "type": "string" },
+          "status": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
