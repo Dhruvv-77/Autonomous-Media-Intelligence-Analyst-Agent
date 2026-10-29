@@ -416,13 +416,21 @@ export default function App() {
             </select>
           </div>
 
-          <div className="profile-chip">
+          <div 
+            className="profile-chip" 
+            onClick={() => setIsSettingsOpen(true)} 
+            style={{ cursor: 'pointer' }}
+            title="Click to configure LLM Engine or paste your API key"
+          >
             <Cpu size={15} />
             <span>Engine:</span>
             <strong>
               {llmProvider === 'groq' ? 'Groq Cloud (Qwen3)' :
-               llmProvider === 'gemini' ? 'Gemini 2.5 Flash' : 'Deterministic Simulation'}
+               llmProvider === 'gemini' ? 'Gemini 3.8 Flash' : 'Deterministic Simulation'}
             </strong>
+            <span style={{ fontSize: '0.72rem', color: apiKey ? 'var(--accent-emerald)' : 'var(--text-muted)', marginLeft: '4px' }}>
+              {apiKey ? '● Key set' : '⚙ API Key'}
+            </span>
           </div>
         </div>
 
@@ -1334,22 +1342,47 @@ export default function App() {
                   value={llmProvider}
                   onChange={(e) => setLlmProvider(e.target.value)}
                 >
-                  <option value="groq">⚡ Groq Cloud – Qwen3 (Ultra-Fast, Free Tier)</option>
-                  <option value="gemini">✨ Gemini 2.5 Flash (Google AI Studio)</option>
+                  <option value="groq">⚡ Groq Cloud – Qwen 3.8 27B (Ultra-Fast Free Tier)</option>
+                  <option value="gemini">✨ Gemini 3.8 Flash (Google AI Studio)</option>
                   <option value="simulation">🔵 Deterministic Simulation (Zero Cost, Instant)</option>
                 </select>
               </div>
 
-              {llmProvider === 'gemini' && (
+              {llmProvider === 'groq' && (
                 <div className="form-group">
-                  <label>Gemini API Key (Optional Override)</label>
+                  <label>Groq API Key (Paste Your Key)</label>
                   <input 
                     type="password" 
                     className="form-control" 
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Leave empty to use configured .env key"
+                    placeholder="gsk_... (or leave empty to use server default)"
                   />
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>
+                    Get a free API key at <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-teal)', textDecoration: 'underline' }}>console.groq.com/keys</a>
+                  </small>
+                </div>
+              )}
+
+              {llmProvider === 'gemini' && (
+                <div className="form-group">
+                  <label>Gemini API Key (Paste Your Key)</label>
+                  <input 
+                    type="password" 
+                    className="form-control" 
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="AIzaSy... (or leave empty to use server default)"
+                  />
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>
+                    Get a free API key at <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-teal)', textDecoration: 'underline' }}>Google AI Studio</a>
+                  </small>
+                </div>
+              )}
+
+              {llmProvider === 'simulation' && (
+                <div style={{ fontSize: '0.8rem', color: 'var(--accent-teal)', background: 'rgba(20, 184, 166, 0.08)', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
+                  ✓ <strong>Deterministic Simulation:</strong> No API key required. Operates offline with zero cost.
                 </div>
               )}
             </div>
