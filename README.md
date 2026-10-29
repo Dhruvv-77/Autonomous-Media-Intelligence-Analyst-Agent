@@ -197,14 +197,15 @@ Evaluates the system against a gold-label evaluation subset (`data/gold_labels_1
 You can host this full application online on **Render.com** completely free so anyone can test it directly in their browser without cloning or running localhost:
 
 ### Step-by-Step Render Deployment Guide:
-1. Go to **[Render.com](https://render.com)** and sign up or log in with GitHub.
-2. Click **New +** (top right) → **Blueprint**.
-3. Select your GitHub repository (`Autonomous-Media-Intelligence-Analyst-Agent`).
-4. Render automatically reads [`render.yaml`](render.yaml) and [`Dockerfile`](Dockerfile) from the repository.
-5. *(Optional)* If you want to configure default API keys, add `GROQ_API_KEY` or `GEMINI_API_KEY` in the environment variables (or leave them blank; visitors can input their own keys directly in the web UI).
-6. Click **Apply**.
-7. Render will build the container (React frontend + FastAPI backend) and provide a free HTTPS URL:
-   `https://autonomous-media-analyst.onrender.com`
+1. Push this repository to your GitHub account (`https://github.com/Dhruvv-77/Autonomous-Media-Intelligence-Analyst-Agent`).
+2. Go to **[Render.com](https://render.com)** and sign in with GitHub.
+3. Click **New +** (top right) → **Blueprint**.
+4. Select your GitHub repository (`Autonomous-Media-Intelligence-Analyst-Agent`).
+5. Render automatically detects [`render.yaml`](render.yaml) and [`Dockerfile`](Dockerfile) from the repository.
+6. *(Optional)* If you want to configure default API keys, add `GROQ_API_KEY` or `GEMINI_API_KEY` in the environment variables (or leave them blank; visitors can input their own keys directly in the web UI).
+7. Click **Apply**.
+8. Render will build the container (React frontend + FastAPI backend) and provide a free HTTPS URL:
+   `https://<your-service-name>.onrender.com`
 
 > [!TIP]
 > The live web dashboard allows any visitor to input their own Groq or Gemini API key right in the web interface settings, or test using the built-in Deterministic Simulation mode with zero configuration!
