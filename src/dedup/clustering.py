@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import gc
+import logging
+import os
 import re
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -11,17 +14,52 @@ from sklearn.cluster import AgglomerativeClustering
 from src.config import EmbeddingsConfig
 from src.models import Article, Cluster
 
+logger = logging.getLogger(__name__)
+
 
 class StoryClusterer:
     def __init__(self, config: EmbeddingsConfig) -> None:
         self.config = config
         self._model = None
+        # Enable low-memory mode automatically on Render free tier (512MB limit) or when requested
+        self.low_memory_mode = (
+            os.environ.get("LOW_MEMORY_MODE", "").lower() in ("1", "true", "yes")
+            or bool(os.environ.get("RENDER"))
+        )
 
     def _get_model(self):
-        if self._model is None:
-            from sentence_transformers import SentenceTransformer
-            self._model = SentenceTransformer(self.config.model)
+        if self._model is None and not self.low_memory_mode:
+            try:
+                import torch
+                torch.set_num_threads(1)
+                torch.set_num_interop_threads(1)
+            except Exception:
+                pass
+            try:
+                from sentence_transformers import SentenceTransformer
+                self._model = SentenceTransformer(self.config.model)
+            except (ImportError, MemoryError, Exception) as exc:
+                logger.warning("Could not load SentenceTransformer (%s). Switching to low-memory TF-IDF mode.", exc)
+                self.low_memory_mode = True
         return self._model
+
+    def _cluster_with_tfidf(self, texts: List[str]) -> List[int]:
+        """Ultra-lightweight lexical and n-gram clustering using < 10MB RAM."""
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_distances
+
+        vectorizer = TfidfVectorizer(max_features=3500, ngram_range=(1, 2), sublinear_tf=True)
+        tfidf_matrix = vectorizer.fit_transform(texts)
+        dist_matrix = cosine_distances(tfidf_matrix)
+
+        dist_threshold = max(0.01, 1.0 - self.config.clustering_threshold)
+        clustering = AgglomerativeClustering(
+            n_clusters=None,
+            distance_threshold=dist_threshold,
+            metric="precomputed",
+            linkage="average"
+        )
+        return clustering.fit_predict(dist_matrix).tolist()
 
     @staticmethod
     def canonicalize_url(url: str) -> str:
@@ -100,19 +138,30 @@ class StoryClusterer:
                 f"{a.title}\n{a.body[:300]}" if a.body else a.title
                 for a in unique_representatives
             ]
-            model = self._get_model()
-            embeddings = model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
 
-            # Cosine distance = 1 - cosine similarity
-            # Distance threshold = 1.0 - clustering_threshold (e.g. 1.0 - 0.82 = 0.18)
-            dist_threshold = max(0.01, 1.0 - self.config.clustering_threshold)
-            clustering = AgglomerativeClustering(
-                n_clusters=None,
-                distance_threshold=dist_threshold,
-                metric="cosine",
-                linkage="average"
-            )
-            labels = clustering.fit_predict(embeddings).tolist()
+            labels = None
+            if not self.low_memory_mode:
+                try:
+                    model = self._get_model()
+                    if model is not None:
+                        embeddings = model.encode(texts, batch_size=16, normalize_embeddings=True, show_progress_bar=False)
+                        dist_threshold = max(0.01, 1.0 - self.config.clustering_threshold)
+                        clustering = AgglomerativeClustering(
+                            n_clusters=None,
+                            distance_threshold=dist_threshold,
+                            metric="cosine",
+                            linkage="average"
+                        )
+                        labels = clustering.fit_predict(embeddings).tolist()
+                except (MemoryError, Exception) as exc:
+                    logger.warning("Dense clustering failed (%s). Falling back to TF-IDF.", exc)
+                    labels = None
+
+            if labels is None:
+                labels = self._cluster_with_tfidf(texts)
+
+        # Garbage collect temporary embedding matrices to release RAM immediately
+        gc.collect()
 
         # Step 3: Group representatives and all their exact duplicates into clusters
         clusters_by_label: Dict[int, List[Article]] = {}

@@ -11,6 +11,10 @@ services:
         value: 8000
       - key: HOST
         value: 0.0.0.0
+      - key: LOW_MEMORY_MODE
+        value: "1"
+      - key: PYTHONUNBUFFERED
+        value: "1"
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY
